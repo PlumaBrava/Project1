@@ -30,15 +30,33 @@ public class MovieDetalleFragment extends Fragment {
         Intent intent = getActivity().getIntent();
         if(intent != null && intent.hasExtra(Intent.EXTRA_TEXT) ){
             String forecastStr = intent.getStringExtra(Intent.EXTRA_TEXT);
-            String imagen = intent.getStringExtra("IMAGEN");
+
+
+            Boolean adults= intent.getBooleanExtra("ADULTS",false) ;
+            String backdrop_path=intent.getStringExtra("BACKDROP_PATH");
+            String origianlLanguaje=intent.getStringExtra("ORIGINLANGUAJE");
+            String originalTitle=intent.getStringExtra("ORIGINALTITLE");
+            String overview=intent.getStringExtra("OVERVIEW");
+            String releaseDate=intent.getStringExtra("RELEASEDATE");
+            String posterPath=intent.getStringExtra("POSTERPATH");
+            Double popularity=intent.getDoubleExtra("POPULARITY",0);
+            String title=intent.getStringExtra("TITLE");
+            Boolean video= intent.getBooleanExtra("VIDEO",false) ;
+            Double voteAverage=intent.getDoubleExtra("VOTEAVERAGE",0);
+            int vote_count=intent.getIntExtra("VOTECOUNT",0);
 
             ((TextView) rootView.findViewById(R.id.detail_title))
-                    .setText(forecastStr);
+                    .setText(title);
 
             ImageView movieImagen =(ImageView) rootView.findViewById(R.id.detail_image);
             Picasso.with(rootView.getContext())
-                    .load("http://image.tmdb.org/t/p/w500"+imagen)
+                    .load("http://image.tmdb.org/t/p/w500"+posterPath)
                     .into(movieImagen);
+
+
+            ((TextView) rootView.findViewById(R.id.overview))
+                    .setText(overview);
+
         }
 
         return rootView;

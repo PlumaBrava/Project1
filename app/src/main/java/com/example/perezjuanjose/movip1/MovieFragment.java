@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.GridView;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -41,9 +42,15 @@ public class MovieFragment extends Fragment {
 
     static private String API_KEY  = "79424eca98daa0b906a464bf7d8f9f0f";
     private FilmsAdapter mMoviesAdapter;
+    private int moviePage;
 
 
-
+    @Override
+    public void onStart(){
+        super.onStart();
+        FetchMoviesTask moviesTask = new FetchMoviesTask();
+        moviesTask.execute("94043");
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -73,8 +80,11 @@ public class MovieFragment extends Fragment {
 
 
 
+
     public MovieFragment() {
     }
+
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -86,16 +96,18 @@ public class MovieFragment extends Fragment {
 
         // Create some dummy data for the ListView.  Here's a sample weekly forecast
         Film[] data = {
-                new  Film("titlea","Polulrity","adress"),
-                new  Film("titlea","Polulrity","adress"),
-                new  Film("titlea","Polulrity","adress"),
-                new  Film("titlea","Polulrity","adress"),
-                new  Film("titlea","Polulrity","adress"),
-                new  Film("titlea","Polulrity","adress"),
-                new  Film("titlea","Polulrity","adress"),
-                new  Film("titlea","Polulrity","adress"),
-                new  Film("titlea","Polulrity","adress"),
-                new  Film("titlea","Polulrity","adress"),
+                new  Film(false,"bckdrop","es","title","overview","Date","posterPath", 2.4,"title",false,3.3,4),
+                new  Film(false,"bckdrop","es","title","overview","Date","posterPath", 2.4,"title",false,3.3,4),
+                new  Film(false,"bckdrop","es","title","overview","Date","posterPath", 2.4,"title",false,3.3,4),
+                new  Film(false,"bckdrop","es","title","overview","Date","posterPath", 2.4,"title",false,3.3,4),
+                new  Film(false,"bckdrop","es","title","overview","Date","posterPath", 2.4,"title",false,3.3,4),
+                new  Film(false,"bckdrop","es","title","overview","Date","posterPath", 2.4,"title",false,3.3,4),
+                new  Film(false,"bckdrop","es","title","overview","Date","posterPath", 2.4,"title",false,3.3,4),
+                new  Film(false,"bckdrop","es","title","overview","Date","posterPath", 2.4,"title",false,3.3,4),
+                new  Film(false,"bckdrop","es","title","overview","Date","posterPath", 2.4,"title",false,3.3,4),
+                new  Film(false,"bckdrop","es","title","overview","Date","posterPath", 2.4,"title",false,3.3,4),
+                new  Film(false,"bckdrop","es","title","overview","Date","posterPath", 2.4,"title",false,3.3,4),
+                new  Film(false,"bckdrop","es","title","overview","Date","posterPath", 2.4,"title",false,3.3,4),
                 };
 
         List<Film> listMovies = new ArrayList<Film>(Arrays.asList(data));
@@ -110,7 +122,7 @@ public class MovieFragment extends Fragment {
         View v= inflater.inflate(R.layout.moviefragment, container, false);
 
         // Get a reference to the ListView, and attach this adapter to it.
-        ListView listView = (ListView) v.findViewById(R.id.movies_list);
+        GridView listView = (GridView) v.findViewById(R.id.movies_list);
         listView.setAdapter(mMoviesAdapter);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -122,7 +134,23 @@ public class MovieFragment extends Fragment {
                 Intent intent = new Intent(getActivity(), MovieDetalle.class);
 
                 intent.putExtra(Intent.EXTRA_TEXT, mMoviesAdapter.getItem(position).title);
-                intent.putExtra("IMAGEN", mMoviesAdapter.getItem(position).backdrop_path);
+
+
+                intent.putExtra("ADULTS", mMoviesAdapter.getItem(position).adults);
+                intent.putExtra("BACKDROP_PATH", mMoviesAdapter.getItem(position).backdrop_path);
+                intent.putExtra("ORIGINLANGUAJE", mMoviesAdapter.getItem(position).origianlLanguaje);
+                intent.putExtra("ORIGINALTITLE", mMoviesAdapter.getItem(position).originalTitle);
+                intent.putExtra("OVERVIEW", mMoviesAdapter.getItem(position).overview);
+                intent.putExtra("RELEASEDATE", mMoviesAdapter.getItem(position).releaseDate);
+                intent.putExtra("POSTERPATH", mMoviesAdapter.getItem(position).posterPath);
+                intent.putExtra("POPULARITY", mMoviesAdapter.getItem(position).popularity);
+                intent.putExtra("TITLE", mMoviesAdapter.getItem(position).title);
+                intent.putExtra("VIDEO", mMoviesAdapter.getItem(position).video);
+                intent.putExtra("VOTEAVERAGE", mMoviesAdapter.getItem(position).voteAverage);
+                intent.putExtra("VOTECOUNT", mMoviesAdapter.getItem(position).vote_count);
+
+
+
 
                 startActivity(intent);
 
@@ -169,15 +197,20 @@ public class MovieFragment extends Fragment {
         private Film[] getFilmDataFromJson(String movieJsonStr, int numDays)
                 throws JSONException {
 
+            int total_pages;
+            int total_results;
+
+
             // These are the names of the JSON objects that need to be extracted.
+
             final String OWM_PAGE = "page";
             final String OWM_RESULTS = "results";
             final String OWM_TOTAL_PAGES = "total_pages";
             final String OWM_TOTAL_RESULTS = "total_results";
-            final String OWM_ADULTS = "adults";
+            final String OWM_ADULT = "adult";
             final String OWM_BACKDROP_PATH = "backdrop_path";
             final String OWM_ID = "id";
-            final String OWM_ORIGINAL_LANGUAJE = "original_languag";
+            final String OWM_ORIGINAL_LANGUAJE = "original_language";
             final String OWM_ORIGINAL_TITLE = "original_title";
             final String OWM_OVERVIEW = "overview";
             final String OWM_RELEASE_DATE = "release_date";
@@ -190,50 +223,52 @@ public class MovieFragment extends Fragment {
 
 
 
-
+            // OWM returns the data number of pages and results.
 
             JSONObject pageMoviesJson = new JSONObject(movieJsonStr);
+            total_pages=pageMoviesJson.getInt(OWM_TOTAL_PAGES);
+            total_results=pageMoviesJson.getInt(OWM_TOTAL_RESULTS);
+            Log.v(LOG_TAG, "Total pages:" +total_pages+ "total results: "+total_results);
             JSONArray resultsArray = pageMoviesJson.getJSONArray(OWM_RESULTS);
 
-            // OWM returns daily forecasts based upon the local time of the city that is being
-            // asked for, which means that we need to know the GMT offset to translate this data
-            // properly.
-
-            // Since this data is also sent in-order and the first day is always the
-            // current day, we're going to take advantage of that to get a nice
-            // normalized UTC date for all of our weather.
-
+            // OWM returns the data of the movies in an array
 
 
             Film[] resulMovies = new Film[resultsArray.length()];
             for(int i = 0; i < resultsArray.length(); i++) {
-                // For now, using the format "Day, description, hi/low"
-                String title;
-                String popularity; //Its a double but i don't need to process the information. So use the string
+                // Thise are the variables of the class film
+                Boolean adults;
                 String backdrop_path;
+                String origianlLanguaje;
+                String originalTitle;
+                String overview;
+                String releaseDate;
+                String posterPath;
+                Double popularity;
+                String title;
+                Boolean video;
+                Double voteAverage;
+                int vote_count;
 
-                // Get the JSON object representing the day
+                // Get the JSON object representing list
                 JSONObject movie = resultsArray.getJSONObject(i);
+                    adults=movie.getBoolean(OWM_ADULT);
+                    backdrop_path = movie.getString(OWM_BACKDROP_PATH);
+                    origianlLanguaje=movie.getString(OWM_ORIGINAL_LANGUAJE);
+                    originalTitle= movie.getString(OWM_ORIGINAL_TITLE);
+                    overview=movie.getString(OWM_OVERVIEW);
+                    releaseDate=movie.getString(OWM_RELEASE_DATE);
+                    posterPath=movie.getString(OWM_POSTER_PATH);
+                    popularity = movie.getDouble(OWM_POPULARITY);
+                    title = movie.getString(OWM_TITLE);
+                    video=movie.getBoolean(OWM_VIDEO);
+                    voteAverage=movie.getDouble(OWM_VOTE_AVERAGE);
+                    vote_count=movie.getInt(OWM_VOTE_COUNT);
 
 
 
-                title = movie.getString(OWM_TITLE);
-                popularity = movie.getString(OWM_POPULARITY);
-                backdrop_path = movie.getString(OWM_BACKDROP_PATH);
+                resulMovies[i]= new Film(adults,backdrop_path,origianlLanguaje,originalTitle,overview,releaseDate,posterPath,popularity,title,video,voteAverage,vote_count);
 
-
-                // Temperatures are in a child object called "temp".  Try not to name variables
-                // "temp" when working with temperature.  It confuses everybody.
-                ////JSONObject temperatureObject = dayForecast.getJSONObject(OWM_TEMPERATURE);
-                ////  double high = temperatureObject.getDouble(OWM_MAX);
-                ////  double low = temperatureObject.getDouble(OWM_MIN);
-
-                //// highAndLow = formatHighLows(high, low);
-
-                resulMovies[i]= new Film(title,popularity,backdrop_path);
-             //   resulMovies[i].popularity=popularity;
-              //  resulMovies[i].backdrop_path=backdrop_path;
-            //                resulMovies[i].film(title, popularity , backdrop_path);
 
             }
 

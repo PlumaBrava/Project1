@@ -6,11 +6,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
+
+import static java.lang.Float.*;
 
 /**
  * Created by perez.juan.jose on 02/08/2015.
@@ -73,7 +76,16 @@ public class FilmsAdapter extends ArrayAdapter<Film>  {
         versionNameView.setText(film.title);
 
         TextView versionNumberView = (TextView) convertView.findViewById(R.id.list_item_popularity);
-        versionNumberView.setText(film.popularity);
+        versionNumberView.setText(film.popularity.toString());
+
+        RatingBar ratingBar= (RatingBar)convertView.findViewById(R.id.rating);
+        ratingBar.setRating((float) (film.getPopularity() / 100 * 5));
+
+
+        if (position%20==0){
+
+            // ask for another page.
+        }
         return convertView;
     }
 
