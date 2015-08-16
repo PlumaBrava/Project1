@@ -1,8 +1,11 @@
 package com.example.perezjuanjose.movip1;
 
+import android.app.ActionBar;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.util.Log;
@@ -33,11 +36,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-
 /**
  * A placeholder fragment containing a simple view.
  */
-public class MovieFragment extends Fragment {
+public class MovieFragment extends Fragment  {
 
 
     static private String API_KEY  = "79424eca98daa0b906a464bf7d8f9f0f";
@@ -49,12 +51,27 @@ public class MovieFragment extends Fragment {
     public void onStart(){
         super.onStart();
         FetchMoviesTask moviesTask = new FetchMoviesTask();
-        moviesTask.execute("94043");
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String order_by=prefs.getString("order_by", "casa");
+
+
+        //            weatherTask.execute(location);
+        String asc_desc = prefs.getString("asc_desc","mesa");
+        Log.v("Prererencias", "order_by:" + order_by + "asc_desc: " + asc_desc);
+        moviesTask.execute(order_by, asc_desc);
+
+       // FetchMoviesTask moviesTask = new FetchMoviesTask();
+       // moviesTask.execute("94043","8");
+
+
+
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         // Add this line in order for this fragment to handle menu events.
         setHasOptionsMenu(true);
     }
@@ -72,7 +89,15 @@ public class MovieFragment extends Fragment {
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
             FetchMoviesTask moviesTask = new FetchMoviesTask();
-            moviesTask.execute("94043");
+
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            String order_by=prefs.getString("order_by", "casa");
+
+
+           //            weatherTask.execute(location);
+            String asc_desc = prefs.getString("asc_desc","mesa");
+            Log.v("Prererencias", "order_by:" + order_by + "asc_desc: " + asc_desc);
+            moviesTask.execute(order_by,asc_desc );
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -281,7 +306,9 @@ public class MovieFragment extends Fragment {
         @Override
         protected Film[] doInBackground(String... params) {
 
-            // If there's no zip code, there's nothing to look up.  Verify size of params.
+            Log.v(LOG_TAG, "Params 0 " + params[0]);
+            Log.v(LOG_TAG, "Params 1 " + params[1]);
+             // If there's no zip code, there's nothing to look up.  Verify size of params.
             if (params.length == 0) {
                 return null;
             }
@@ -307,13 +334,13 @@ public class MovieFragment extends Fragment {
                 final String QUERY_API_KEY = "api_key";
 
 
-                final String FORMAT_PARAM = "mode";
+                final String FORMAT_SORT_BY = "sort_by";
                 final String UNITS_PARAM = "units";
                 final String DAYS_PARAM = "cnt";
 
                 Uri builtUri = Uri.parse(MOVIE_BASE_URL).buildUpon()
                         .appendQueryParameter(QUERY_API_KEY,API_KEY)
-                     //   .appendQueryParameter(FORMAT_PARAM, format)
+                       .appendQueryParameter(FORMAT_SORT_BY, params[0]+params[1])
                       //  .appendQueryParameter(UNITS_PARAM, units)
                       //  .appendQueryParameter(DAYS_PARAM, Integer.toString(numDays))
                         .build();
