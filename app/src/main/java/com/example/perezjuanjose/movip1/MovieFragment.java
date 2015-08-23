@@ -1,6 +1,5 @@
 package com.example.perezjuanjose.movip1;
 
-import android.app.ActionBar;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -16,10 +15,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.GridView;
-import android.widget.ListView;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -31,42 +27,48 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+
 
 /**
  * A placeholder fragment containing a simple view.
  */
+
+
 public class MovieFragment extends Fragment  {
 
-
-    static private String API_KEY  = "79424eca98daa0b906a464bf7d8f9f0f";
+    public static boolean preferenceHasChanged = false;
+    static private String API_KEY  = "";
     private FilmsAdapter mMoviesAdapter;
+    private ArrayList<Film> listMovies;
     private int moviePage;
+
+    static  private String ORDER_BY = "order_by";//Preference to fetch the movie information in the web POPULARITY, VOTE AVERAGE, VOTE COUNT
+    static  private String ASC_DESC = "asc_desc";//Preference to fetch the movie information in the web aSCENDENTE OR DESCENDENTE
+
+    private String oldOrder_BY=null;
+    private String oldASC_DEC=null;
+
+
+
 
 
     @Override
     public void onStart(){
+
+        Log.i("Prererencias", "On Start");
+        Log.i("Prererencias", "mthis"+ preferenceHasChanged);
+        if(preferenceHasChanged) {
+
+            updateData();
+            preferenceHasChanged=false;
+
+            //updateData();
+        }
         super.onStart();
-        FetchMoviesTask moviesTask = new FetchMoviesTask();
-
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String order_by=prefs.getString("order_by", "casa");
+   }
 
 
-        //            weatherTask.execute(location);
-        String asc_desc = prefs.getString("asc_desc","mesa");
-        Log.v("Prererencias", "order_by:" + order_by + "asc_desc: " + asc_desc);
-        moviesTask.execute(order_by, asc_desc);
-
-       // FetchMoviesTask moviesTask = new FetchMoviesTask();
-       // moviesTask.execute("94043","8");
-
-
-
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -74,39 +76,53 @@ public class MovieFragment extends Fragment  {
 
         // Add this line in order for this fragment to handle menu events.
         setHasOptionsMenu(true);
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menumoviesfragmet, menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_refresh) {
-            FetchMoviesTask moviesTask = new FetchMoviesTask();
-
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-            String order_by=prefs.getString("order_by", "casa");
 
 
-           //            weatherTask.execute(location);
-            String asc_desc = prefs.getString("asc_desc","mesa");
-            Log.v("Prererencias", "order_by:" + order_by + "asc_desc: " + asc_desc);
-            moviesTask.execute(order_by,asc_desc );
-            return true;
+
+        // Update data form the web ot read the saved datea
+        if(savedInstanceState==null || !savedInstanceState.containsKey("Films")){
+
+            updateData();
+
+
+        }else{
+           listMovies= savedInstanceState.getParcelableArrayList("Films");
+
+            Log.i("Prererencias", "lee Parcelable");
+
+
         }
-        return super.onOptionsItemSelected(item);
     }
 
 
+    @Override
+    public void onSaveInstanceState (Bundle outState) {
+        //Save the data we read from the web. We don't need to fetch the information again when we rotate te phone.
+        outState.putParcelableArrayList("Films", listMovies);
+        super.onCreate(outState);
+    }
+
+
+
+    //Up date the Apater with the movis information reading the preferene
+public void updateData(){
+
+   // Read the Preference to call the web
+    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+    String order_by=prefs.getString(ORDER_BY, "popularity.");
+    String asc_desc = prefs.getString(ASC_DESC,"desc");
+
+    Log.i("Prererencias", "order_by:" + order_by + "asc_desc: " + asc_desc);
+
+    //Fetche the movis data
+    FetchMoviesTask moviesTask = new FetchMoviesTask();
+    moviesTask.execute(order_by, asc_desc);
+}
 
 
     public MovieFragment() {
+
+        listMovies = new ArrayList<Film>();
     }
 
 
@@ -119,42 +135,26 @@ public class MovieFragment extends Fragment  {
         // Add this line in order for this fragment to handle menu events.
         setHasOptionsMenu(true);
 
-        // Create some dummy data for the ListView.  Here's a sample weekly forecast
-        Film[] data = {
-                new  Film(false,"bckdrop","es","title","overview","Date","posterPath", 2.4,"title",false,3.3,4),
-                new  Film(false,"bckdrop","es","title","overview","Date","posterPath", 2.4,"title",false,3.3,4),
-                new  Film(false,"bckdrop","es","title","overview","Date","posterPath", 2.4,"title",false,3.3,4),
-                new  Film(false,"bckdrop","es","title","overview","Date","posterPath", 2.4,"title",false,3.3,4),
-                new  Film(false,"bckdrop","es","title","overview","Date","posterPath", 2.4,"title",false,3.3,4),
-                new  Film(false,"bckdrop","es","title","overview","Date","posterPath", 2.4,"title",false,3.3,4),
-                new  Film(false,"bckdrop","es","title","overview","Date","posterPath", 2.4,"title",false,3.3,4),
-                new  Film(false,"bckdrop","es","title","overview","Date","posterPath", 2.4,"title",false,3.3,4),
-                new  Film(false,"bckdrop","es","title","overview","Date","posterPath", 2.4,"title",false,3.3,4),
-                new  Film(false,"bckdrop","es","title","overview","Date","posterPath", 2.4,"title",false,3.3,4),
-                new  Film(false,"bckdrop","es","title","overview","Date","posterPath", 2.4,"title",false,3.3,4),
-                new  Film(false,"bckdrop","es","title","overview","Date","posterPath", 2.4,"title",false,3.3,4),
-                };
 
-        List<Film> listMovies = new ArrayList<Film>(Arrays.asList(data));
+        Log.i("On create View", "Ejecutada");
+        // List<Film> listMovies = new ArrayList<Film>(Arrays.asList(data));
 
-        // Now that we have some dummy forecast data, create an ArrayAdapter.
-        // The ArrayAdapter will take data from a source (like our dummy forecast) and
-        // use it to populate the ListView it's attached to.
+        // Here we set the adapater.
+
         mMoviesAdapter =
                 new FilmsAdapter(
                         getActivity(),
-                        listMovies);
+                        listMovies );
         View v= inflater.inflate(R.layout.moviefragment, container, false);
 
-        // Get a reference to the ListView, and attach this adapter to it.
+        // Get a reference to the View, and attach this adapter to it.
         GridView listView = (GridView) v.findViewById(R.id.movies_list);
         listView.setAdapter(mMoviesAdapter);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Toast toast = Toast.makeText(getActivity(), "data :" + mMoviesAdapter.getItem(position).toString(), Toast.LENGTH_LONG);
-                toast.show();
+
 
                 Intent intent = new Intent(getActivity(), MovieDetalle.class);
 
@@ -190,36 +190,13 @@ public class MovieFragment extends Fragment  {
 
         private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
 
-        /* The date/time conversion code is going to be moved outside the asynctask later,
-         * so for convenience we're breaking it out into its own method now.
-         */
-        private String getReadableDateString(long time){
-            // Because the API returns a unix timestamp (measured in seconds),
-            // it must be converted to milliseconds in order to be converted to valid date.
-            SimpleDateFormat shortenedDateFormat = new SimpleDateFormat("EEE MMM dd");
-            return shortenedDateFormat.format(time);
-        }
+
+
 
         /**
-         * Prepare the weather high/lows for presentation.
+         Extract information from de String abd return an Array of Film
          */
-        private String formatHighLows(double high, double low) {
-            // For presentation, assume the user doesn't care about tenths of a degree.
-            long roundedHigh = Math.round(high);
-            long roundedLow = Math.round(low);
-
-            String highLowStr = roundedHigh + "/" + roundedLow;
-            return highLowStr;
-        }
-
-        /**
-         * Take the String representing the complete forecast in JSON Format and
-         * pull out the data we need to construct the Strings needed for the wireframes.
-         *
-         * Fortunately parsing is easy:  constructor takes the JSON string and converts it
-         * into an Object hierarchy for us.
-         */
-        private Film[] getFilmDataFromJson(String movieJsonStr, int numDays)
+        private Film[] getFilmDataFromJson(String movieJsonStr)
                 throws JSONException {
 
             int total_pages;
@@ -253,7 +230,7 @@ public class MovieFragment extends Fragment  {
             JSONObject pageMoviesJson = new JSONObject(movieJsonStr);
             total_pages=pageMoviesJson.getInt(OWM_TOTAL_PAGES);
             total_results=pageMoviesJson.getInt(OWM_TOTAL_RESULTS);
-            Log.v(LOG_TAG, "Total pages:" +total_pages+ "total results: "+total_results);
+            Log.i(LOG_TAG, "Total pages:" + total_pages + "total results: "+total_results);
             JSONArray resultsArray = pageMoviesJson.getJSONArray(OWM_RESULTS);
 
             // OWM returns the data of the movies in an array
@@ -298,20 +275,23 @@ public class MovieFragment extends Fragment  {
             }
 
             for (Film s : resulMovies) {
-                Log.v(LOG_TAG, "FMovies entry: " + s.getTitle()+" -"+s.getPopularity()+" -"+s.backdrop_path);
+                Log.i(LOG_TAG, "FMovies entry: " + s.getTitle() + " -" + s.getPopularity() + " -"+s.backdrop_path);
             }
             return resulMovies;
 
         }
         @Override
         protected Film[] doInBackground(String... params) {
-
-            Log.v(LOG_TAG, "Params 0 " + params[0]);
-            Log.v(LOG_TAG, "Params 1 " + params[1]);
-             // If there's no zip code, there's nothing to look up.  Verify size of params.
+            // If there's no films, there's nothing to look up.  Verify size of params.
             if (params.length == 0) {
                 return null;
             }
+
+            // This are the parameters passed to look n the web
+            Log.i(LOG_TAG, "Params 0 " + params[0]);
+            Log.i(LOG_TAG, "Params 1 " + params[1]);
+
+
 
             // These two need to be declared outside the try/catch
             // so that they can be closed in the finally block.
@@ -321,9 +301,6 @@ public class MovieFragment extends Fragment  {
             // Will contain the raw JSON response as a string.
             String movieJsonStr = null;
 
-            String format = "json";
-            String units = "metric";
-            int numDays = 7;
 
             try {
                 // Construct the URL for the OpenWeatherMap query
@@ -335,19 +312,15 @@ public class MovieFragment extends Fragment  {
 
 
                 final String FORMAT_SORT_BY = "sort_by";
-                final String UNITS_PARAM = "units";
-                final String DAYS_PARAM = "cnt";
 
                 Uri builtUri = Uri.parse(MOVIE_BASE_URL).buildUpon()
-                        .appendQueryParameter(QUERY_API_KEY,API_KEY)
+                       .appendQueryParameter(QUERY_API_KEY,API_KEY)
                        .appendQueryParameter(FORMAT_SORT_BY, params[0]+params[1])
-                      //  .appendQueryParameter(UNITS_PARAM, units)
-                      //  .appendQueryParameter(DAYS_PARAM, Integer.toString(numDays))
-                        .build();
+                       .build();
 
                 URL url = new URL(builtUri.toString());
 
-                Log.v(LOG_TAG, "Built URI " + builtUri.toString());
+                Log.i(LOG_TAG, "Built URI " + builtUri.toString());
 
                 // Create the request to OpenWeatherMap, and open the connection
                 urlConnection = (HttpURLConnection) url.openConnection();
@@ -377,7 +350,7 @@ public class MovieFragment extends Fragment  {
                 }
                 movieJsonStr = buffer.toString();
 
-                Log.v(LOG_TAG, "Forecast string: " + movieJsonStr);
+                Log.i(LOG_TAG, "Forecast string: " + movieJsonStr);
             } catch (IOException e) {
                 Log.e(LOG_TAG, "Error ", e);
                 // If the code didn't successfully get the weather data, there's no point in attemping
@@ -397,7 +370,7 @@ public class MovieFragment extends Fragment  {
             }
 
             try {
-                return getFilmDataFromJson(movieJsonStr, numDays);
+                return getFilmDataFromJson(movieJsonStr);
             } catch (JSONException e) {
                 Log.e(LOG_TAG, e.getMessage(), e);
                 e.printStackTrace();
@@ -410,11 +383,10 @@ public class MovieFragment extends Fragment  {
         @Override
         protected void onPostExecute(Film[] result) {
             if (result != null) {
-                mMoviesAdapter.clear();
-                for(Film movi : result) {
-                    mMoviesAdapter.add(movi);
+               mMoviesAdapter.clear();
+               for(Film movi : result) {
+               mMoviesAdapter.add(movi);
                 }
-                // New data is back from the server.  Hooray!
             }
         }
     }

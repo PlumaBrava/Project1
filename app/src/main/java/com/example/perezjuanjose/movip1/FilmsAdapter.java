@@ -27,7 +27,7 @@ public class FilmsAdapter extends ArrayAdapter<Film>  {
      * to populate into the lists
      *
      * @param context        The current context. Used to inflate the layout file.
-     * @param movies A List of AndroidFlavor objects to display in a list
+     * @param movies A List of Movies objects to display in a list
      */
     public FilmsAdapter(Activity context, List<Film> movies) {
         // Here, we initialize the ArrayAdapter's internal storage for the context and the list.
@@ -69,22 +69,22 @@ public class FilmsAdapter extends ArrayAdapter<Film>  {
         iconView.setImageResource(R.drawable.cupcake);
 
         Picasso.with(getContext())
-                .load("http://image.tmdb.org/t/p/w500"+film.backdrop_path)
+                .load("http://image.tmdb.org/t/p/w185"+film.backdrop_path)
                 .into(iconView);
 
         TextView versionNameView = (TextView) convertView.findViewById(R.id.list_item_title);
         versionNameView.setText(film.title);
 
         TextView versionNumberView = (TextView) convertView.findViewById(R.id.list_item_popularity);
-        versionNumberView.setText(film.popularity.toString());
+        versionNumberView.setText( film.popularity.toString());
 
         RatingBar ratingBar= (RatingBar)convertView.findViewById(R.id.rating);
         ratingBar.setRating((float) (film.getPopularity() / 100 * 5));
 
 
-        if (position%20==0){
+        if (position == 20-1){
 
-            // ask for another page.
+            // ask for another page.moviPage*
         }
         return convertView;
     }

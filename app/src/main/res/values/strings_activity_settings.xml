@@ -5,6 +5,7 @@
 
     <!-- Example General settings -->
     <string name="pref_header_general">General</string>
+
     <string name="order_by">Sort order Type</string>
     <string-array name="order_by">
         <item>Popularity</item>
@@ -24,7 +25,6 @@
     <string-array name="ascendent_descendent_value">
         <item>asc</item>
         <item>desc</item>
-
     </string-array>
 
     <string name="pref_title_social_recommendations">Enable social recommendations</string>

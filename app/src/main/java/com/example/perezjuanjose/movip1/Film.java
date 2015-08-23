@@ -1,9 +1,14 @@
 package com.example.perezjuanjose.movip1;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import java.net.FileNameMap;
+
 /**
  * Created by perez.juan.jose on 01/08/2015.
  */
-public class Film {
+public class Film implements Parcelable {
 
     Boolean adults;
     String backdrop_path;
@@ -128,4 +133,61 @@ public class Film {
     public void setVote_count(int vote_count) {
         this.vote_count = vote_count;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+
+
+
+        dest.writeByte((byte) (adults ? 1 : 0));     //if adults == true, byte == 1
+        dest.writeString(backdrop_path);
+        dest.writeString(origianlLanguaje);
+        dest.writeString(originalTitle);
+        dest.writeString(releaseDate);
+        dest.writeString(posterPath);
+        dest.writeDouble(popularity);
+        dest.writeString(title);
+        dest.writeByte((byte) (video ? 1 : 0));     //if video == true, byte == 1
+        dest.writeString(overview);
+        dest.writeDouble(voteAverage);
+        dest.writeInt(vote_count);
+    }
+
+    public final   Parcelable.Creator<Film> CREATOR=
+            new Parcelable.Creator<Film>(){
+
+                public Film createFromParcel(Parcel in) {
+                    return new Film (in);
+                }
+
+                @Override
+                public Film[] newArray(int i){
+                    return new Film[i];
+
+                }
+            };
+
+    private Film (Parcel in){
+
+        adults=in.readByte()!= 0;
+        backdrop_path=in.readString();
+        origianlLanguaje=in.readString();
+        originalTitle=in.readString();
+        overview=in.readString();
+        releaseDate=in.readString();
+        posterPath=in.readString();
+        popularity=in.readDouble();
+        title=in.readString();
+        video=in.readByte()!= 0;
+        voteAverage =in.readDouble();
+        vote_count=in.readInt();
+
+
+    }
+
 }
